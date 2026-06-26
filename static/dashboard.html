@@ -7,41 +7,66 @@
   <link rel="stylesheet" href="/static/styles.css" />
 </head>
 <body>
-  <div class="sidebar">
-    <div class="sidebar-logo">PI Partners</div>
-    <div class="sidebar-label">Policy & Compliance</div>
-    <nav class="sidebar-nav">
-      <a href="#" class="nav-item active">Ask a Question</a>
-      <a href="#" class="nav-item">Recent Queries</a>
-    </nav>
-    <div class="sidebar-sources">
-      <div class="source-label">Connected Sources</div>
-      <div class="source-badge">Confluence</div>
-      <div class="source-badge">SharePoint</div>
-      <div class="source-badge">JustWorks</div>
-    </div>
-  </div>
 
+  <!-- Reference panel -->
+  <aside class="panel">
+    <div class="panel-brand">
+      <div class="panel-firm">PI Partners</div>
+      <div class="panel-product">Compliance Reference</div>
+    </div>
+
+    <div class="panel-divider"></div>
+
+    <div>
+      <div class="panel-section-label">Sources</div>
+      <div class="sources">
+        <div class="source-item"><span class="source-dot"></span>Confluence</div>
+        <div class="source-item"><span class="source-dot"></span>SharePoint</div>
+        <div class="source-item"><span class="source-dot"></span>JustWorks</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="panel-section-label">Common topics</div>
+      <div class="topics">
+        <button class="topic-btn" onclick="ask('What is the expense reimbursement policy?')">Expense reimbursement</button>
+        <button class="topic-btn" onclick="ask('How many PTO days do I accrue per year?')">PTO accrual</button>
+        <button class="topic-btn" onclick="ask('What are the record retention requirements?')">Record retention</button>
+        <button class="topic-btn" onclick="ask('How does the 401k employer match work?')">401(k) match</button>
+        <button class="topic-btn" onclick="ask('What is the remote work policy?')">Remote work</button>
+        <button class="topic-btn" onclick="ask('What must a new hire complete in their first 30 days?')">New hire checklist</button>
+        <button class="topic-btn" onclick="ask('What are the conflict of interest disclosure rules?')">Conflicts of interest</button>
+      </div>
+    </div>
+
+    <div class="panel-footer">
+      <strong>Note:</strong> Answers are drawn from internal policy exports. Confirm sensitive matters with Compliance or HR directly.
+    </div>
+  </aside>
+
+  <!-- Conversation -->
   <div class="main">
     <div class="topbar">
       <div class="topbar-title">Policy & Compliance Q&A</div>
-      <div class="topbar-sub">Instant answers from internal policy and regulatory guidance</div>
+      <div class="topbar-status">● Live</div>
     </div>
 
-    <div class="quick-chips">
-      <button class="chip" onclick="ask('What is the expense reimbursement policy?')">Expense policy</button>
-      <button class="chip" onclick="ask('How many PTO days do I get?')">PTO</button>
-      <button class="chip" onclick="ask('What are the record retention rules?')">Record retention</button>
-      <button class="chip" onclick="ask('How does the 401k match work?')">401(k)</button>
-      <button class="chip" onclick="ask('What is the remote work policy?')">Remote work</button>
-      <button class="chip" onclick="ask('What do I need to do when onboarding a new hire?')">Onboarding</button>
+    <div class="chat" id="chat">
+      <div class="empty-state" id="empty">
+        <div class="empty-icon">§</div>
+        <h2>Ask about any internal policy</h2>
+        <p>Questions about HR rules, regulatory requirements, expense guidelines, benefits, or compliance obligations — answered from Confluence, SharePoint, and JustWorks.</p>
+      </div>
     </div>
 
-    <div class="chat-container" id="chat"></div>
-
-    <div class="input-bar">
-      <input id="input" type="text" placeholder="Ask about any policy, regulation, or HR rule…" onkeydown="if(event.key==='Enter') sendMessage()" />
-      <button onclick="sendMessage()">Ask</button>
+    <div class="input-area">
+      <div class="input-row">
+        <input id="input" type="text"
+          placeholder="e.g. What is the deadline for expense submissions?"
+          onkeydown="if(event.key==='Enter') sendMessage()" />
+        <button class="send-btn" onclick="sendMessage()">Ask</button>
+      </div>
+      <div class="input-hint">Covers travel &amp; expense, PTO, benefits, record retention, conflicts of interest, onboarding, and more.</div>
     </div>
   </div>
 
