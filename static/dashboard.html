@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Policy & Compliance Q&A — PI Partners</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-logo">PI Partners</div>
+    <div class="sidebar-label">Policy & Compliance</div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">Ask a Question</a>
+      <a href="#" class="nav-item">Recent Queries</a>
+    </nav>
+    <div class="sidebar-sources">
+      <div class="source-label">Connected Sources</div>
+      <div class="source-badge">Confluence</div>
+      <div class="source-badge">SharePoint</div>
+      <div class="source-badge">JustWorks</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title">Policy & Compliance Q&A</div>
+      <div class="topbar-sub">Instant answers from internal policy and regulatory guidance</div>
+    </div>
+
+    <div class="quick-chips">
+      <button class="chip" onclick="ask('What is the expense reimbursement policy?')">Expense policy</button>
+      <button class="chip" onclick="ask('How many PTO days do I get?')">PTO</button>
+      <button class="chip" onclick="ask('What are the record retention rules?')">Record retention</button>
+      <button class="chip" onclick="ask('How does the 401k match work?')">401(k)</button>
+      <button class="chip" onclick="ask('What is the remote work policy?')">Remote work</button>
+      <button class="chip" onclick="ask('What do I need to do when onboarding a new hire?')">Onboarding</button>
+    </div>
+
+    <div class="chat-container" id="chat"></div>
+
+    <div class="input-bar">
+      <input id="input" type="text" placeholder="Ask about any policy, regulation, or HR rule…" onkeydown="if(event.key==='Enter') sendMessage()" />
+      <button onclick="sendMessage()">Ask</button>
+    </div>
+  </div>
+
+  <script src="/static/dashboard.js"></script>
+</body>
+</html>
