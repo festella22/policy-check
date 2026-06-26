@@ -6,13 +6,13 @@ Instant answers from PI Partners internal policy and regulatory guidance — Con
 
 A browser-based chat dashboard. Ask any question about internal policy, HR rules, or regulatory guidance and get a cited answer in seconds. No special software needed beyond a browser.
 
-## Setup
+## Setup (Windows)
 
-```bash
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env and add your API key
-uvicorn server:app --port 8080
+```powershell
+python -m pip install -r requirements.txt
+copy .env.example .env
+# Open .env and replace your-key-here with your Anthropic API key
+python -m uvicorn server:app --port 8080
 ```
 
 Open `http://localhost:8080`.
