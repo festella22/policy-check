@@ -1,58 +1,52 @@
 @echo off
 title Policy Compliance QA
 
-:: ── Check Python ────────────────────────────────────────────
+:: ── Check Python ─────────────────────────────────────────────
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo ERROR: Python is not installed.
-    echo Download it from https://www.python.org/downloads/
+    echo.
+    echo Python is not installed on this computer.
+    echo Download it from: https://www.python.org/downloads/
+    echo.
     pause
     exit /b
 )
 
-:: ── First-time setup: create .env if missing ────────────────
+:: ── First-time setup ─────────────────────────────────────────
 if not exist ".env" (
-    copy ".env.example" ".env" >nul
     echo.
-    echo First-time setup:
-    echo Open the .env file in this folder and replace "your-key-here"
-    echo with your Anthropic API key, then run this file again.
+    echo =========================================
+    echo  First-time setup
+    echo =========================================
     echo.
-    start notepad .env
-    pause
-    exit /b
+    set /p FIRM="Enter your firm name (e.g. PI Partners): "
+    echo.
+    set /p APIKEY="Paste your API key and press Enter: "
+    echo.
+
+    :: Auto-detect provider from key format
+    echo !APIKEY! | findstr /b "sk-ant-" >nul 2>&1
+    if not errorlevel 1 (
+        echo FIRM_NAME=!FIRM!> .env
+        echo ANTHROPIC_API_KEY=!APIKEY!>> .env
+    ) else (
+        echo FIRM_NAME=!FIRM!> .env
+        echo OPENAI_API_KEY=!APIKEY!>> .env
+    )
+
+    echo Setup complete. Starting...
+    echo.
 )
 
-:: ── Check API key is filled in ───────────────────────────────
-findstr /r "^ANTHROPIC_API_KEY=sk" .env >nul 2>&1
-if not errorlevel 1 goto keyfound
-findstr /r "^OPENAI_API_KEY=sk" .env >nul 2>&1
-if not errorlevel 1 goto keyfound
-findstr /r "^GOOGLE_API_KEY=." .env >nul 2>&1
-if not errorlevel 1 goto keyfound
+:: ── Install dependencies ──────────────────────────────────────
+echo Checking dependencies...
+python -m pip install -r requirements.txt -q --no-warn-script-location
 
+:: ── Launch ───────────────────────────────────────────────────
 echo.
-echo Your API key is not set yet.
-echo Open the .env file, find your provider line, remove the # from the front,
-echo and make sure your key is there.
-echo.
-start notepad .env
-pause
-exit /b
-
-:keyfound
-
-:: ── Install dependencies (silent after first run) ───────────
-echo Installing / checking dependencies...
-python -m pip install -r requirements.txt -q
-
-:: ── Open browser after short delay ──────────────────────────
-echo.
-echo Starting server — opening browser in 3 seconds...
-echo Press Ctrl+C in this window to stop.
+echo Starting — browser will open in a moment.
+echo Press Ctrl+C to stop the server.
 echo.
 start "" cmd /c "timeout /t 3 >nul && start http://localhost:8080"
-
-:: ── Run server ───────────────────────────────────────────────
 python -m uvicorn server:app --port 8080
 pause

@@ -7,6 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+FIRM_NAME = os.getenv("FIRM_NAME", "Your Organization")
+
 # --- Provider detection ---
 PROVIDER = os.getenv("LLM_PROVIDER", "").lower()
 if not PROVIDER:
@@ -23,7 +25,7 @@ if not PROVIDER:
 # Replace the DATA sections below with your actual exported policy content.
 # Pull exports from Confluence, SharePoint, and JustWorks and paste them in.
 SYSTEM_PROMPT = """
-You are a Policy & Compliance Assistant embedded in the PI Partners internal dashboard.
+You are a Policy & Compliance Assistant embedded in an internal dashboard.
 You have access to the firm's internal policy documents, regulatory guidance, and HR policies
 sourced from Confluence, SharePoint, and JustWorks.
 
@@ -110,6 +112,10 @@ def chat(req: ChatRequest):
         return {"text": result.get("text", ""), "chart": result.get("chart", None)}
     except Exception as e:
         return {"text": f"Error: {str(e)}", "chart": None}
+
+@app.get("/config")
+def config():
+    return {"firm_name": FIRM_NAME}
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

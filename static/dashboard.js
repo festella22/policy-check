@@ -1,3 +1,13 @@
+fetch("/config")
+  .then(r => r.json())
+  .then(cfg => {
+    document.getElementById("firm-name").textContent = cfg.firm_name;
+    document.title = cfg.firm_name + " — Policy & Compliance Q&A";
+  })
+  .catch(() => {
+    document.getElementById("firm-name").textContent = "Policy Q&A";
+  });
+
 function ask(text) {
   document.getElementById("input").value = text;
   sendMessage();
