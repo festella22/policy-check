@@ -1,6 +1,0 @@
-fastapi
-uvicorn
-python-dotenv
-anthropic
-# openai        # uncomment if using OpenAI
-# google-genai  # uncomment if using Gemini
