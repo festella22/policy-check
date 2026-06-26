@@ -1,5 +1,5 @@
 @echo off
-title Policy & Compliance Q&A — PI Partners
+title Policy Compliance QA
 
 :: ── Check Python ────────────────────────────────────────────
 python --version >nul 2>&1
@@ -24,16 +24,23 @@ if not exist ".env" (
 )
 
 :: ── Check API key is filled in ───────────────────────────────
-findstr /c:"your-key-here" .env >nul
-if not errorlevel 1 (
-    echo.
-    echo Your API key is not set yet.
-    echo Open the .env file and replace "your-key-here" with your key.
-    echo.
-    start notepad .env
-    pause
-    exit /b
-)
+findstr /r "^ANTHROPIC_API_KEY=sk" .env >nul 2>&1
+if not errorlevel 1 goto keyfound
+findstr /r "^OPENAI_API_KEY=sk" .env >nul 2>&1
+if not errorlevel 1 goto keyfound
+findstr /r "^GOOGLE_API_KEY=." .env >nul 2>&1
+if not errorlevel 1 goto keyfound
+
+echo.
+echo Your API key is not set yet.
+echo Open the .env file, find your provider line, remove the # from the front,
+echo and make sure your key is there.
+echo.
+start notepad .env
+pause
+exit /b
+
+:keyfound
 
 :: ── Install dependencies (silent after first run) ───────────
 echo Installing / checking dependencies...
