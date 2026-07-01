@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useRouter } from 'next/navigation'
 import { Connector, ConnectorType } from '@/types'
 import { CheckCircle, XCircle, Plus, Trash2 } from 'lucide-react'
 
@@ -28,6 +29,7 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
   const [fields, setFields] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const supabase = createClient()
+  const router = useRouter()
 
   async function addConnector() {
     setSaving(true)
@@ -40,12 +42,12 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
     })
     setSaving(false)
     setAdding(false)
-    window.location.reload()
+    router.refresh()
   }
 
   async function removeConnector(id: string) {
     await supabase.from('connectors').delete().eq('id', id)
-    window.location.reload()
+    router.refresh()
   }
 
   return (

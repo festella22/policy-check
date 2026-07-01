@@ -1,6 +1,6 @@
 import { streamText } from 'ai'
 import { NextRequest } from 'next/server'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { getLLMModel, getApiKey } from '@/lib/llm/provider'
 import { searchAllConnectors, formatResultsForPrompt } from '@/lib/connectors'
 import { HR_POLICY_SYSTEM_PROMPT } from '@/lib/prompts/hr-policy'
@@ -11,22 +11,24 @@ export const maxDuration = 60
 export async function POST(req: NextRequest) {
   try {
     const { messages, conversationId } = await req.json()
-    const supabase = await createServiceClient()
 
-    // Auth check
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    // Auth: anon client validates user session from cookie
+    const authClient = await createClient()
+    const { data: { user }, error: authError } = await authClient.auth.getUser()
     if (authError || !user) {
       return new Response('Unauthorized', { status: 401 })
     }
 
-    // Get user's firm and connectors
-    const { data: profile } = await supabase
+    // DB: service client bypasses RLS for multi-tenant queries
+    const supabase = await createServiceClient()
+
+    const { data: profile, error: profileError } = await supabase
       .from('user_profiles')
       .select('firm_id')
       .eq('id', user.id)
       .single()
 
-    if (!profile) return new Response('Profile not found', { status: 404 })
+    if (profileError || !profile) return new Response('Profile not found', { status: 404 })
 
     const { data: connectorRows } = await supabase
       .from('connectors')
@@ -34,7 +36,6 @@ export async function POST(req: NextRequest) {
       .eq('firm_id', profile.firm_id)
       .eq('status', 'active')
 
-    // Search all connected sources
     const lastMessage = messages[messages.length - 1]?.content || ''
     const connectors = (connectorRows || []).map((c) => ({
       type: c.type,
@@ -42,33 +43,46 @@ export async function POST(req: NextRequest) {
       lastSynced: c.last_synced_at,
     }))
 
-    const searchResults = await searchAllConnectors(lastMessage, connectors)
+    const [searchResults] = await Promise.all([
+      searchAllConnectors(lastMessage, connectors),
+    ])
     const context = formatResultsForPrompt(searchResults)
 
-    // Audit log
-    await supabase.from('audit_log').insert({
+    // Create conversation server-side if none exists
+    let activeConversationId: string | null = conversationId || null
+    let isNewConversation = false
+    if (!activeConversationId) {
+      const { data: convo } = await supabase
+        .from('conversations')
+        .insert({
+          user_id: user.id,
+          firm_id: profile.firm_id,
+          title: lastMessage.slice(0, 80),
+        })
+        .select('id')
+        .single()
+      activeConversationId = convo?.id || null
+      isNewConversation = true
+    }
+
+    // Fire-and-forget audit log and user message save
+    supabase.from('audit_log').insert({
       user_id: user.id,
       firm_id: profile.firm_id,
       question: lastMessage,
       sources_queried: connectors.map((c) => c.type),
     })
 
-    // Save user message
-    if (conversationId) {
-      await supabase.from('messages').insert({
-        conversation_id: conversationId,
+    if (activeConversationId) {
+      supabase.from('messages').insert({
+        conversation_id: activeConversationId,
         role: 'user',
         content: lastMessage,
         sources: [],
       })
     }
 
-    const systemPrompt = `${HR_POLICY_SYSTEM_PROMPT}
-
-## Search results from connected sources
-
-${context}`
-
+    const systemPrompt = `${HR_POLICY_SYSTEM_PROMPT}\n\n## Search results from connected sources\n\n${context}`
     const apiKey = getApiKey()
     const model = getLLMModel(apiKey)
 
@@ -77,9 +91,9 @@ ${context}`
       system: systemPrompt,
       messages,
       onFinish: async ({ text }) => {
-        if (conversationId) {
+        if (activeConversationId) {
           await supabase.from('messages').insert({
-            conversation_id: conversationId,
+            conversation_id: activeConversationId,
             role: 'assistant',
             content: text,
             sources: searchResults.map((r) => ({
@@ -94,7 +108,11 @@ ${context}`
       },
     })
 
-    return result.toDataStreamResponse()
+    return result.toDataStreamResponse({
+      headers: isNewConversation && activeConversationId
+        ? { 'X-Conversation-Id': activeConversationId }
+        : undefined,
+    })
   } catch (err) {
     console.error('Chat error:', err)
     return new Response('Internal server error', { status: 500 })
