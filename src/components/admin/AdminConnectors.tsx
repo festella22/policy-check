@@ -28,12 +28,14 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
   const [name, setName] = useState('')
   const [fields, setFields] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
   const supabase = createClient()
   const router = useRouter()
 
   async function addConnector() {
     setSaving(true)
-    await supabase.from('connectors').insert({
+    setSaveError('')
+    const { error } = await supabase.from('connectors').insert({
       firm_id: firmId,
       type,
       name: name || type,
@@ -41,7 +43,13 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
       status: 'active',
     })
     setSaving(false)
+    if (error) {
+      setSaveError('Failed to save connector. Check credentials and try again.')
+      return
+    }
     setAdding(false)
+    setName('')
+    setFields({})
     router.refresh()
   }
 
@@ -126,6 +134,12 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
               </div>
             ))}
 
+            {saveError && (
+              <p className="text-[12px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                {saveError}
+              </p>
+            )}
+
             <div className="flex gap-2 mt-1">
               <button
                 onClick={addConnector}
@@ -134,7 +148,7 @@ export default function AdminConnectors({ connectors, firmId }: { connectors: Co
               >
                 {saving ? 'Saving…' : 'Add connector'}
               </button>
-              <button onClick={() => setAdding(false)} className="text-[13px] text-[#6B6860] hover:text-[#28261F]">
+              <button onClick={() => { setAdding(false); setSaveError('') }} className="text-[13px] text-[#6B6860] hover:text-[#28261F]">
                 Cancel
               </button>
             </div>
