@@ -34,7 +34,7 @@ export default function Sidebar({ userId }: { userId: string }) {
       setConversations(convos || [])
     }
     load()
-  }, [userId])
+  }, [userId, pathname])
 
   async function handleLogout() {
     await supabase.auth.signOut()

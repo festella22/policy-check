@@ -30,7 +30,7 @@ export default function ChatInterface({ conversationId: initConvoId, initialMess
   const [conversationId, setConversationId] = useState<string | null>(initConvoId || null)
   const router = useRouter()
 
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat({
+  const { messages, input, handleInputChange, handleSubmit, isLoading, error } = useChat({
     api: '/api/chat',
     body: { conversationId },
     initialMessages: initialMessages || [],
@@ -75,6 +75,12 @@ export default function ChatInterface({ conversationId: initConvoId, initialMess
         {messages.map((m: any) => (
           <MessageBubble key={m.id} message={m} />
         ))}
+
+        {error && (
+          <div className="self-start bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-[13px] text-red-700 max-w-lg">
+            Something went wrong — please try again.
+          </div>
+        )}
 
         {isLoading && (
           <div className="flex gap-1.5 px-4 py-3 bg-white border border-[#DDD8CC] rounded-xl rounded-bl-sm w-fit">
